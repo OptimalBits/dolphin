@@ -18,5 +18,10 @@
   "bugs": {
     "url": "https://github.com/OptimalBits/dolphin/issues"
   },
-  "homepage": "https://github.com/OptimalBits/dolphin"
+  "homepage": "https://github.com/OptimalBits/dolphin",
+  "dependencies": {
+    "bluebird": "^2.9.24",
+    "docker-modem": "^0.2.1",
+    "request": "^2.55.0"
+  }
 }
