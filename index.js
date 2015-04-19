@@ -9,9 +9,12 @@ var Promise = require('bluebird');
 var RESTART_WAIT = 5000;
 
 var Dolphin = function(_url, opts) {
-  if (!(this instanceof Dolphin)) return new Dolphin(_url, opts);
+  if (!(this instanceof Dolphin)){
+  	return new Dolphin(_url, opts);
+  }
 
-  url = url || process.env.DOCKER_HOST || 'http://unix:/var/run/docker.sock';
+  _url = _url || process.env.DOCKER_HOST || 'http://unix:/var/run/docker.sock';
+  _url = _url.replace('tcp://', 'http://');
 
   this.url = url.parse(_url);
   this.opts = opts;
