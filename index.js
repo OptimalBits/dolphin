@@ -5,6 +5,7 @@ var http = require('http');
 var request = require('request');
 var EventEmitter = require('events').EventEmitter;
 var Promise = require('bluebird');
+var querystring = require('querystring');
 
 var RESTART_WAIT = 5000;
 
@@ -63,10 +64,8 @@ Dolphin.prototype.version = function() {
 	return this._get('version');
 }
 
-Dolphin.prototype.events = function(opts) {
-	opts = opts || {};
-
-	var url = buildUrl(this.url, 'events', this.isSocket);
+Dolphin.prototype.events = function(query) {
+	var url = buildUrl(this.url, 'events', query, this.isSocket);
 	var emitter = new EventEmitter;
 	var latestTime;
 	var req;
@@ -80,7 +79,6 @@ Dolphin.prototype.events = function(opts) {
 	function startStreaming(){
 		return request({
 			url: url,
-			qs: opts
 		}).on('data', function(chunk){
 			var evt;
 			try{
@@ -117,14 +115,10 @@ Dolphin.prototype.events = function(opts) {
 Dolphin.prototype._get = function(path, query){
 
 	var opts = {
-		url: buildUrl(this.url, path, this.isSocket)
+		url: buildUrl(this.url, path, query, this.isSocket)
 	};
 
 	console.log(opts)
-
-	if(query){
-		opts.qs = query;
-	}
 
 	return new Promise(function(resolve, reject){
 		request(opts, function(err, response, body){
@@ -143,13 +137,17 @@ Dolphin.prototype._get = function(path, query){
 	});
 }
 
-function buildUrl(url, path, isSocket){
+function buildUrl(url, path, query, isSocket){
 	console.log(url, path)
 	if(isSocket){
-		return 'http://unix:' + url + ':/' + path;
+		url = 'http://unix:' + url + ':/' + path;
 	}else{
-		return url + '/'+ path;
+		url = url + '/'+ path;
 	}
+	if(query){
+		url += '?' + querystring.stringify(query);
+	}
+	return url;
 }
 
 module.exports = Dolphin;
