@@ -13,10 +13,16 @@ var Dolphin = function(_url, opts) {
   	return new Dolphin(_url, opts);
   }
 
-  _url = _url || process.env.DOCKER_HOST || 'http://unix:/var/run/docker.sock';
-  _url = _url.replace('tcp://', 'http://');
+  _url = _url || process.env.DOCKER_HOST || '/var/run/docker.sock';
+  this.url = _url = _url.replace('tcp://', 'http://').replace(/\/+$/, "");
 
-  this.url = url.parse(_url);
+  //
+  // Assume a UNIX domain socket if no protocol provided
+  //
+  if(!url.parse(_url).protocol){
+  	this.isSocket = true;
+  }
+
   this.opts = opts;
 
   var _this = this;
@@ -60,7 +66,7 @@ Dolphin.prototype.version = function() {
 Dolphin.prototype.events = function(opts) {
 	opts = opts || {};
 
-	var url = this.url.href + '/events';
+	var url = buildUrl(this.url, 'events', this.isSocket);
 	var emitter = new EventEmitter;
 	var latestTime;
 	var req;
@@ -109,11 +115,12 @@ Dolphin.prototype.events = function(opts) {
 }
 
 Dolphin.prototype._get = function(path, query){
-	var href = this.url.href + '/' + path;
 
 	var opts = {
-		url: href
+		url: buildUrl(this.url, path, this.isSocket)
 	};
+
+	console.log(opts)
 
 	if(query){
 		opts.qs = query;
@@ -134,6 +141,15 @@ Dolphin.prototype._get = function(path, query){
 			}
 		});
 	});
+}
+
+function buildUrl(url, path, isSocket){
+	console.log(url, path)
+	if(isSocket){
+		return 'http://unix:' + url + ':/' + path;
+	}else{
+		return url + '/'+ path;
+	}
 }
 
 module.exports = Dolphin;
