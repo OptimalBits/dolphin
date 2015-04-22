@@ -95,7 +95,13 @@ Dolphin.prototype.events = function(query) {
 			restart();
 		}).on('close', function(doc){
 			restart();
-		})
+		}).on('response', function(res){
+			if(res.statusCode === 200){
+				emitter.emit('connected');
+			}else{
+				emitter.emit('error', Error("Error connecting with status "+res.statusCode));
+			}
+		});
 	}
 
 	function restart(){
@@ -118,8 +124,6 @@ Dolphin.prototype._get = function(path, query){
 		url: buildUrl(this.url, path, query, this.isSocket)
 	};
 
-	console.log(opts)
-
 	return new Promise(function(resolve, reject){
 		request(opts, function(err, response, body){
 			if(err) return reject(err);
@@ -138,7 +142,6 @@ Dolphin.prototype._get = function(path, query){
 }
 
 function buildUrl(url, path, query, isSocket){
-	console.log(url, path)
 	if(isSocket){
 		url = 'http://unix:' + url + ':/' + path;
 	}else{
