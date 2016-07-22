@@ -29,39 +29,39 @@ var Dolphin = function(_url, opts) {
   var _this = this;
 
   this.containers.inspect = function(id){
-  	return _this._get('containers/' + id + '/json');
+  	return _this._get('containers/' + id + '/json', null, _this.opts);
   }
 
   this.containers.logs = function(id){
   	// TODO: disable json parse
-  	return _this._get('containers/' + id + '/logs');
+  	return _this._get('containers/' + id + '/logs', null, _this.opts);
   }
 
   this.containers.changes = function(id){
-  	return _this._get('containers/' + id + '/changes');
+  	return _this._get('containers/' + id + '/changes', null, _this.opts);
   }
 
   this.containers.export = function(id){
   	// TODO: disable json parse
-  	return _this._get('containers/' + id + '/export');
+  	return _this._get('containers/' + id + '/export', null, _this.opts);
   }
 
   this.containers.stats = function(id){
   	// TODO: "getStream"
-  	return _this._get('containers/' + id + '/stats');
+  	return _this._get('containers/' + id + '/stats', null, _this.opts);
   }
 };
 
 Dolphin.prototype.containers = function(query){
-	return this._get('containers/json', query);
+	return this._get('containers/json', query, _this.opts);
 }
 
 Dolphin.prototype.info = function() {
-	return this._get('info');
+	return this._get('info', null, _this.opts);
 }
 
 Dolphin.prototype.version = function() {
-	return this._get('version');
+	return this._get('version', null, _this.opts);
 }
 
 Dolphin.prototype.events = function(query) {
@@ -118,11 +118,10 @@ Dolphin.prototype.events = function(query) {
 	return emitter;
 }
 
-Dolphin.prototype._get = function(path, query){
+Dolphin.prototype._get = function(path, query, args){
 
-	var opts = {
-		url: buildUrl(this.url, path, query, this.isSocket)
-	};
+	var opts = args;
+	opts.url = buildUrl(this.url, path, query, this.isSocket);
 
 	return new Promise(function(resolve, reject){
 		request(opts, function(err, response, body){
