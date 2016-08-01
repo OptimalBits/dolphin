@@ -120,9 +120,8 @@ Dolphin.prototype.events = function(query) {
 
 Dolphin.prototype._get = function(path, query, args){
 
-	var opts = args;
-	if (opts === null) { opts = { url: buildUrl(this.url, path, query, this.isSocket) };}
-	else { opts.url = buildUrl(this.url, path, query, this.isSocket);}
+	var opts = args || {};
+	opts.url = buildUrl(this.url, path, query, this.isSocket);
 
 	return new Promise(function(resolve, reject){
 		request(opts, function(err, response, body){
