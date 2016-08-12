@@ -143,6 +143,11 @@ Dolphin.prototype._get = function(path, query, args){
 	var opts = args || {};
 	opts.url = buildUrl(this.url, path, query, this.isSocket);
 
+	if(this.isSocket){
+		// Workaround for request bug https://github.com/request/request/issues/2327
+		opts.headers = {host: 'http'};
+	}
+
 	return new Promise(function(resolve, reject){
 		request(opts, function(err, response, body){
 			if(err) return reject(err);
