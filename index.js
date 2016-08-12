@@ -36,6 +36,7 @@ var Dolphin = function(_url, opts) {
     //
     // Assume a UNIX domain socket if no protocol provided
     //
+		this.url = _url;
     this.isSocket = true;
   }
 
