@@ -1,4 +1,7 @@
 # Dolphin
+![dolphin](https://d30y9cdsu7xlg0.cloudfront.net/png/29924-200.png)
+
+
 A fast, lightweight an modular library to interact with docker daemons.
 
 This module provides a thin layer to communicate with docker daemons in node.
