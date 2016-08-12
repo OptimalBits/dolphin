@@ -6,22 +6,37 @@ var request = require('request');
 var EventEmitter = require('events').EventEmitter;
 var Promise = require('bluebird');
 var querystring = require('querystring');
+var fs = require('fs');
+var path = require('path');
 
 var RESTART_WAIT = 5000;
 
 var Dolphin = function(_url, opts) {
   if (!(this instanceof Dolphin)){
-  	return new Dolphin(_url, opts);
+    return new Dolphin(_url, opts);
   }
 
-  _url = _url || process.env.DOCKER_HOST || '/var/run/docker.sock';
-  this.url = _url = _url.replace('tcp://', 'http://').replace(/\/+$/, "");
+  opts = opts || {};
 
-  //
-  // Assume a UNIX domain socket if no protocol provided
-  //
-  if(!url.parse(_url).protocol){
-  	this.isSocket = true;
+  _url = _url || process.env.DOCKER_HOST || '/var/run/docker.sock';
+  _url = url.parse(_url);
+  if(_url.protocol){
+    var protocol = 'http';
+    if (process.env.DOCKER_TLS_VERIFY === '1' || _url.port === '2376') {
+      protocol = 'https';
+      
+      if (process.env.DOCKER_CERT_PATH) {
+        opts.ca = fs.readFileSync(path.join(process.env.DOCKER_CERT_PATH, 'ca.pem'));
+        opts.cert = fs.readFileSync(path.join(process.env.DOCKER_CERT_PATH, 'cert.pem'));
+        opts.key = fs.readFileSync(path.join(process.env.DOCKER_CERT_PATH, 'key.pem'));
+      }
+    }
+    this.url = protocol + '://' + _url.host;
+  }else{
+    //
+    // Assume a UNIX domain socket if no protocol provided
+    //
+    this.isSocket = true;
   }
 
   this.opts = opts;
@@ -70,6 +85,7 @@ Dolphin.prototype.events = function(query) {
 	var latestTime;
 	var req;
 	var restartTimeout;
+  var _this = this;
 
 	emitter.abort = function(){
 		req && req.abort();
@@ -79,6 +95,9 @@ Dolphin.prototype.events = function(query) {
 	function startStreaming(){
 		return request({
 			url: url,
+      ca: _this.opts.ca,
+      cert: _this.opts.cert,
+      key: _this.opts.key
 		}).on('data', function(chunk){
 			var evt;
 			try{
