@@ -24,7 +24,7 @@ var Dolphin = function(_url, opts) {
     var protocol = 'http';
     if (process.env.DOCKER_TLS_VERIFY === '1' || _url.port === '2376') {
       protocol = 'https';
-      
+
       if (process.env.DOCKER_CERT_PATH) {
         opts.ca = fs.readFileSync(path.join(process.env.DOCKER_CERT_PATH, 'ca.pem'));
         opts.cert = fs.readFileSync(path.join(process.env.DOCKER_CERT_PATH, 'cert.pem'));
@@ -68,24 +68,24 @@ var Dolphin = function(_url, opts) {
 };
 
 Dolphin.prototype.containers = function(query){
-	return this._get('containers/json', query, _this.opts);
+	return this._get('containers/json', query, this.opts);
 }
 
 Dolphin.prototype.info = function() {
-	return this._get('info', null, _this.opts);
+	return this._get('info', null, this.opts);
 }
 
 Dolphin.prototype.version = function() {
-	return this._get('version', null, _this.opts);
+	return this._get('version', null, this.opts);
 }
 
 Dolphin.prototype.events = function(query) {
+	var _this = this;
 	var url = buildUrl(this.url, 'events', query, this.isSocket);
 	var emitter = new EventEmitter;
 	var latestTime;
 	var req;
 	var restartTimeout;
-  var _this = this;
 
 	emitter.abort = function(){
 		req && req.abort();
