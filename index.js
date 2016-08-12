@@ -98,7 +98,8 @@ Dolphin.prototype.events = function(query) {
 			url: url,
       ca: _this.opts.ca,
       cert: _this.opts.cert,
-      key: _this.opts.key
+      key: _this.opts.key,
+			headers: _this.isSocket ? {host: 'http'} : void 0
 		}).on('data', function(chunk){
 			var evt;
 			try{
