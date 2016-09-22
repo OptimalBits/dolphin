@@ -1,6 +1,6 @@
 {
   "name": "dolphin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A fast and lightweight module to interact with docker deamons",
   "main": "index.js",
   "scripts": {
