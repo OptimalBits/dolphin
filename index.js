@@ -10,6 +10,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 
+var images = require('./images');
 var networks = require('./networks');
 var volumes = require('./volumes');
 var services = require('./services');
@@ -81,6 +82,7 @@ var Dolphin = function (opts) {
   //
   // Attach methods
   //
+  this.images = images(this);
   this.volumes = volumes(this);
   this.networks = networks(this);
   this.services = services(this);
