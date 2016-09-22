@@ -10,11 +10,11 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 
-var images = require('./images');
+var images = require('./lib/images');
 var nodes = require('./lib/nodes')
-var networks = require('./networks');
-var volumes = require('./volumes');
-var services = require('./services');
+var networks = require('./lib/networks');
+var volumes = require('./lib/volumes');
+var services = require('./lib/services');
 
 var RESTART_WAIT = 5000;
 
