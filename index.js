@@ -26,6 +26,7 @@ var Dolphin = function (opts) {
   var env = this.env = process.env;
   if (typeof opts === 'string') {
     env = getMachineEnv(opts);
+    this.env = _.extend(this.env, env);
     opts = {};
   }
 
@@ -166,7 +167,7 @@ Dolphin.prototype.docker = function(args){
   var _this = this;
   var child = require('child_process');
   return new Promise(function(resolve, reject){
-    var result = child.spawnSync('docker', args, _this.env);
+    var result = child.spawnSync('docker', args, {env: _this.env});
     if(result.status === 0){
       resolve(result.stdout.toString());
     }else{
