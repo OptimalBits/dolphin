@@ -163,7 +163,6 @@ Dolphin.prototype.events = function (query) {
 }
 
 Dolphin.prototype.docker = function(args){
-  // TODO: Implement asynchronously.
   var _this = this;
   var child = require('child_process');
   return new Promise(function(resolve, reject){
@@ -173,7 +172,6 @@ Dolphin.prototype.docker = function(args){
     var err = '';
 
     docker.stdout.on('data', function(data){
-      console.log(data.toString());
       result += data;
       lastResult = data;
     });
