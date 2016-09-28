@@ -167,13 +167,25 @@ Dolphin.prototype.docker = function(args){
   var _this = this;
   var child = require('child_process');
   return new Promise(function(resolve, reject){
-    var result = child.spawnSync('docker', args, {env: _this.env});
-    if(result.status === 0){
-      resolve(result.stdout.toString());
-    }else{
-      reject(Error(result.stderr));
-    }
-  })
+    var docker = child.spawn('docker', args, {env: _this.env});
+    var result = '';
+    var lastResult;
+    var err = '';
+
+    docker.stdout.on('data', function(data){
+      console.log(data.toString());
+      result += data;
+      lastResult = data;
+    });
+
+    docker.stderr.on('data', function(data){
+      err += data;
+    });
+
+    docker.on('close', function(code){
+      return code === 0 ? resolve(lastResult) : reject(err);
+    });
+  });
 }
 
 Dolphin.prototype._list = function(bucket, idOrFilters, opts){
