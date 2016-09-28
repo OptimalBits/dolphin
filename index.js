@@ -168,12 +168,10 @@ Dolphin.prototype.docker = function(args){
   return new Promise(function(resolve, reject){
     var docker = child.spawn('docker', args, {env: _this.env});
     var result = '';
-    var lastResult;
     var err = '';
 
     docker.stdout.on('data', function(data){
       result += data;
-      lastResult = data;
     });
 
     docker.stderr.on('data', function(data){
@@ -181,7 +179,7 @@ Dolphin.prototype.docker = function(args){
     });
 
     docker.on('close', function(code){
-      return code === 0 ? resolve(lastResult) : reject(err);
+      return code === 0 ? resolve(result.toString()) : reject(err);
     });
   });
 }
