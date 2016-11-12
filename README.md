@@ -54,6 +54,9 @@ dolphin.info().then(function(info){
 })
 ```
 
+## Images
+
+
 ## Containers
 
 You can get a list of all the containers running on the system using the container method:
@@ -130,4 +133,17 @@ dolphin.events({
 ```
 
 See which events are produced by docker here: https://docs.docker.com/engine/reference/api/docker_remote_api_v1.24/#/monitor-docker-s-events
+
+
+## Volumes
+
+
+## Networks
+
+
+## Nodes
+
+
+## Services
+
 
