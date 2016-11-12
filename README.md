@@ -74,7 +74,7 @@ dolphin.containers({
 	since: {Integer}, // Show containers created since given timestamp
 	before: {Integer}, // Show containers created before given timestamp
 	size: {Boolean},
-	filters: {String}, // exited=<int> status=(restarting|running|paused|exited)
+	filters: {Object}, // Eg. {"exited":0, "status":["restarting","running","paused","exited"]}
 }).then(function(containers){
 
 })
