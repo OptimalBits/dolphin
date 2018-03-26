@@ -162,32 +162,106 @@ Dolphin.prototype.events = function (query) {
   return emitter;
 }
 
-Dolphin.prototype.docker = function(args){
+Dolphin.prototype.docker = function (args) {
   var _this = this;
   var child = require('child_process');
-  return new Promise(function(resolve, reject){
-    var docker = child.spawn('docker', args, {env: _this.env});
+  return new Promise(function (resolve, reject) {
+    var docker = child.spawn('docker', args, { env: _this.env });
     var result = '';
     var err = '';
 
-    docker.stdout.on('data', function(data){
+    docker.stdout.on('data', function (data) {
       result += data;
     });
 
-    docker.stderr.on('data', function(data){
+    docker.stderr.on('data', function (data) {
       err += data;
     });
 
-    docker.on('close', function(code){
+    docker.on('close', function (code) {
       return code === 0 ? resolve(result.toString()) : reject(err);
     });
   });
 }
 
-Dolphin.prototype._list = function(bucket, idOrFilters, opts){
+/**
+ * @param {string | Buffer | string[]} str
+ * @private 
+ */
+function trimTerminator(str) {
+  if (Array.isArray(str)) {
+    return trimTerminator(str.join(''));
+  }
+
+  if (typeof str !== 'string') {
+    str = str.toString();
+  }
+
+  return str.replace(/[\r\n]+$/, '');
+}
+
+/**
+* Executes a docker command by spawning a new docker instance. This is more flexible than the docker() function.
+* 
+* @param { string[] } args Args that will be used when calling the docker command.
+* @param { (data: string, err: string) => void } [cb] Optional callback function. Will be called on every buffer of data received.
+* 
+* @returns { Promise<{ stdout: string; stderr: string; }> } A Promise containaing the code, signal, stdout, and stderr.
+*/
+Dolphin.prototype.cmd = function cmd(args, cb) {
+  if (cb && typeof cb !== 'function') {
+    throw new Error('cb needs to be a function');
+  }
+
+  return new Promise((resolve, reject) => {
+    const child = require('child_process');
+    const childProcess = child.spawn('docker', args, { env: this.env });
+
+    /** @type {string[]} */
+    const stdout = [];
+
+    /** @type {string[]} */
+    const stderr = [];
+
+    const dataProcessor = err => {
+      return data => {
+        (err ? stderr : stdout).push(data);
+
+        if (cb) {
+          data = trimTerminator(data);
+          return err ? cb(null, data) : cb(data);
+        }
+      };
+    };
+
+    childProcess.stdout.on('data', dataProcessor(false));
+    childProcess.stderr.on('data', dataProcessor(true));
+
+    childProcess.on('close', (code, signal) => {
+      const _stdout = trimTerminator(stdout);
+      const _stderr = trimTerminator(stderr);
+
+      if (code === 0) {
+        return resolve({
+          stdout: _stdout,
+          stderr: _stderr
+        });
+      }
+
+      const err = new Error('An error has occured while executing the docker command.');
+      err.code = code;
+      err.signal = signal;
+      err.stdout = _stdout;
+      err.stderr = _stderr;
+      return reject(err);
+    });
+  });
+};
+
+Dolphin.prototype._list = function (bucket, idOrFilters, opts) {
   var query;
-  if(idOrFilters){
-    if(_.isString(idOrFilters)){
+  if (idOrFilters) {
+    if (_.isString(idOrFilters)) {
       return this._get(bucket + '/' + idOrFilters, null, opts);
     }
     query = {
@@ -211,7 +285,7 @@ Dolphin.prototype._delete = function (path, args) {
   return this._request('DELETE', path, null, args);
 }
 
-Dolphin.prototype._request = function(method, path, query, args){
+Dolphin.prototype._request = function (method, path, query, args) {
   var opts = args ? _.clone(args) : {};
   opts.url = buildUrl(this.url, path, query, this.isSocket);
   opts.method = method;
@@ -226,16 +300,16 @@ Dolphin.prototype._request = function(method, path, query, args){
     request(opts, function (err, response, body) {
       if (err) return reject(err);
 
-      if([200, 201, 204].indexOf(response.statusCode) != -1){
+      if ([200, 201, 204].indexOf(response.statusCode) != -1) {
         try {
           resolve(body);
           //resolve(JSON.parse(body));
         } catch (err) {
           reject(err);
         }
-      }else if(response.statusCode === 404 && opts.method !== 'POST'){
+      } else if (response.statusCode === 404 && opts.method !== 'POST') {
         resolve();
-      }else{
+      } else {
         return reject(Error('Request failed: ' + response.statusCode + ':' + JSON.stringify(body)));
       }
     });
@@ -249,7 +323,7 @@ function buildUrl(url, path, query, isSocket) {
     url = url + '/' + path;
   }
   if (query) {
-    if(query.filters){
+    if (query.filters) {
       query.filters = filtersToJSON(query.filters);
     }
     url += '?' + querystring.stringify(query);
@@ -257,9 +331,9 @@ function buildUrl(url, path, query, isSocket) {
   return url;
 }
 
-function filtersToJSON(filters){
+function filtersToJSON(filters) {
   var keys = Object.keys(filters);
-  keys.forEach(function(key){
+  keys.forEach(function (key) {
     filters[key] = [filters[key].toString()];
   })
   return JSON.stringify(filters);
@@ -269,24 +343,24 @@ function filtersToJSON(filters){
  * Returns the env vars for the given docker machine.
  */
 function getMachineEnv(machine) {
-    var child = require('child_process');
-    var result = child.spawnSync('docker-machine', ['env', machine]);
+  var child = require('child_process');
+  var result = child.spawnSync('docker-machine', ['env', machine]);
 
-    if(result.status === 0){
-      var str = result.stdout.toString();
-      var expr = str
-        .replace(new RegExp('export ', 'g'), 'envs.')
-        .split('\n')
-        .filter(function (line) {
-          return line[0] !== '#';
+  if (result.status === 0) {
+    var str = result.stdout.toString();
+    var expr = str
+      .replace(new RegExp('export ', 'g'), 'envs.')
+      .split('\n')
+      .filter(function (line) {
+        return line[0] !== '#';
       }).join(';')
 
-      var envs = {};
-      eval(expr);
-      return envs;
-    }else{
-      throw Error(result.stderr)
-    }
+    var envs = {};
+    eval(expr);
+    return envs;
+  } else {
+    throw Error(result.stderr)
+  }
 }
 
 module.exports = Dolphin;
