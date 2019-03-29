@@ -21,7 +21,6 @@
   "homepage": "https://github.com/OptimalBits/dolphin",
   "dependencies": {
     "bluebird": "^2.9.24",
-    "lodash": "^4.15.0",
-    "request": "^2.65.0"
+    "lodash": "^4.15.0"
   }
 }
